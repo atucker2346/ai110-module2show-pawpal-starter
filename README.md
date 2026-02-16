@@ -22,15 +22,32 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
-## Smarter Scheduling
+## Features
 
-PawPal+ includes intelligent algorithms to make scheduling more efficient:
+PawPal+ provides a comprehensive pet care scheduling system with the following capabilities:
 
-- **Sorting**: Tasks can be sorted by scheduled time, priority, or duration
+### Core Features
+- **Pet Management**: Add multiple pets with species information
+- **Task Creation**: Create tasks with title, type, duration, priority, and optional recurrence
+- **Owner Preferences**: Set available time windows and preferences
+- **Schedule Generation**: Automatically generate optimized daily schedules
+
+### Smart Scheduling Algorithms
+
+- **Sorting by Time**: Tasks are automatically sorted chronologically by scheduled time
+- **Priority-Based Scheduling**: High-priority tasks are scheduled first, with shorter tasks prioritized within the same priority level
 - **Filtering**: Filter tasks by completion status (complete/incomplete) or by pet name
 - **Recurring Tasks**: Automatically create new task instances when daily or weekly tasks are marked complete
-- **Conflict Detection**: Identifies scheduling conflicts where tasks overlap in time and provides warnings
-- **Priority-Based Scheduling**: High-priority tasks are scheduled first, with shorter tasks prioritized within the same priority level
+- **Conflict Detection**: Identifies scheduling conflicts where tasks overlap in time and provides clear warnings
+- **Time Window Management**: Respects owner's available hours and schedules tasks accordingly
+
+### User Interface
+
+- **Streamlit Web App**: Clean, intuitive interface for managing pets and tasks
+- **Real-time Updates**: Changes reflect immediately in the UI
+- **Conflict Warnings**: Visual alerts for scheduling conflicts with helpful tips
+- **Task Completion**: Mark tasks complete with automatic recurring task creation
+- **Schedule Explanation**: Detailed explanations of why tasks were scheduled as they were
 
 ## Getting started
 
@@ -105,3 +122,20 @@ The test suite provides high confidence in system reliability:
 - Sorting, filtering, and conflict detection algorithms are thoroughly verified
 - Recurring task logic is validated to ensure automatic task creation works correctly
 - Edge cases ensure the system handles boundary conditions gracefully
+
+## 📸 Demo
+
+Run the Streamlit app to see PawPal+ in action:
+
+```bash
+streamlit run app.py
+```
+
+The app provides:
+- Interactive pet and task management
+- Real-time schedule generation
+- Visual conflict warnings
+- Task completion tracking with automatic recurrence
+- Filtering and sorting options
+
+<a href="/course_images/ai110/pawpal_app.png" target="_blank"><img src='/course_images/ai110/pawpal_app.png' title='PawPal+ App' width='800' alt='PawPal+ Streamlit Application' class='center-block' /></a>

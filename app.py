@@ -86,15 +86,28 @@ if st.session_state.owner.pets:
         if st.session_state.get(f"show_tasks_{i}", False):
             if pet.tasks:
                 task_data = []
-                for task in pet.tasks:
+                for task_idx, task in enumerate(pet.tasks):
                     task_data.append({
                         "Task": task.title,
                         "Type": task.task_type,
                         "Duration": f"{task.duration_minutes} min",
                         "Priority": task.priority,
+                        "Frequency": task.frequency or "none",
                         "Completed": "✅" if task.completed else "❌"
                     })
                 st.dataframe(task_data, use_container_width=True)
+                
+                # Add mark complete buttons
+                st.markdown("**Mark tasks as complete:**")
+                for task_idx, task in enumerate(pet.tasks):
+                    if not task.completed:
+                        if st.button(f"✓ Complete: {task.title}", key=f"complete_{i}_{task_idx}"):
+                            pet.mark_task_complete(task.title)
+                            if task.frequency:
+                                st.success(f"✅ '{task.title}' marked complete! New {task.frequency} task created.")
+                            else:
+                                st.success(f"✅ '{task.title}' marked complete!")
+                            st.rerun()
             else:
                 st.info("No tasks for this pet yet.")
 else:
@@ -130,7 +143,7 @@ else:
     selected_pet_display = st.selectbox("Select pet for this task", options=list(pet_options.keys()))
     selected_pet = pet_options[selected_pet_display]
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     with col1:
         task_title = st.text_input("Task title", value="Morning walk", key="task_title_input")
     with col2:
@@ -141,8 +154,17 @@ else:
         )
     with col3:
         duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20, key="duration_input")
+    
+    col4, col5 = st.columns(2)
     with col4:
         priority = st.selectbox("Priority", ["low", "medium", "high"], index=2, key="priority_input")
+    with col5:
+        frequency = st.selectbox(
+            "Frequency (recurring)",
+            ["none", "daily", "weekly"],
+            key="frequency_input",
+            help="Select 'daily' or 'weekly' to automatically create new tasks when completed"
+        )
     
     if st.button("Add Task", key="add_task_button"):
         if task_title:
@@ -150,10 +172,12 @@ else:
                 title=task_title,
                 duration_minutes=int(duration),
                 priority=priority,
-                task_type=task_type
+                task_type=task_type,
+                frequency=frequency if frequency != "none" else None
             )
             selected_pet.add_task(new_task)
-            st.success(f"Added '{task_title}' for {selected_pet.name}!")
+            freq_msg = f" (recurring: {frequency})" if frequency != "none" else ""
+            st.success(f"Added '{task_title}' for {selected_pet.name}!{freq_msg}")
             st.rerun()
         else:
             st.error("Please enter a task title.")
@@ -183,7 +207,14 @@ else:
     if "schedule" in st.session_state and st.session_state.schedule:
         st.success("✅ Schedule generated!")
         
-        # Display schedule
+        # Display conflict warnings if any
+        if "scheduler" in st.session_state and st.session_state.scheduler.conflict_warnings:
+            st.warning("⚠️ **Schedule Conflicts Detected:**")
+            for warning in st.session_state.scheduler.conflict_warnings:
+                st.warning(warning)
+            st.info("💡 **Tip:** Consider adjusting task times or your availability window to resolve conflicts.")
+        
+        # Display schedule (already sorted by time from generate_schedule)
         st.markdown("### Today's Schedule")
         schedule_data = []
         for item in st.session_state.schedule:
@@ -196,6 +227,44 @@ else:
                 "Priority": item["priority"]
             })
         st.dataframe(schedule_data, use_container_width=True)
+        
+        # Add filtering and sorting options
+        with st.expander("🔍 View Options"):
+            col1, col2 = st.columns(2)
+            with col1:
+                filter_pet = st.selectbox(
+                    "Filter by Pet",
+                    options=["All"] + [pet.name for pet in st.session_state.owner.pets],
+                    key="filter_pet_select"
+                )
+            with col2:
+                show_completed = st.checkbox("Show completed tasks", value=False, key="show_completed_check")
+            
+            if filter_pet != "All" or not show_completed:
+                # Apply filters
+                all_tasks = st.session_state.owner.get_all_tasks()
+                filtered_tasks = st.session_state.scheduler.filter_tasks(
+                    all_tasks,
+                    completed=None if show_completed else False,
+                    pet_name=None if filter_pet == "All" else filter_pet
+                )
+                
+                if filtered_tasks:
+                    st.markdown("**Filtered Tasks:**")
+                    filtered_data = []
+                    for task in filtered_tasks:
+                        filtered_data.append({
+                            "Task": task.title,
+                            "Pet": next((p.name for p in st.session_state.owner.pets if task in p.get_tasks()), "Unknown"),
+                            "Type": task.task_type,
+                            "Duration": f"{task.duration_minutes} min",
+                            "Priority": task.priority,
+                            "Status": "✅ Complete" if task.completed else "❌ Incomplete",
+                            "Scheduled": task.get_scheduled_time_str() if task.scheduled_time else "Not scheduled"
+                        })
+                    st.dataframe(filtered_data, use_container_width=True)
+                else:
+                    st.info("No tasks match the selected filters.")
         
         # Display explanation
         with st.expander("📝 Schedule Explanation"):
