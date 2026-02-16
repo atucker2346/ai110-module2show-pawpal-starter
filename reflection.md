@@ -5,7 +5,7 @@
 **Core Actions:**
 1. **Add/Manage Pet Information**: Users should be able to enter basic information about their pet (name, species) and link it to an owner profile with preferences and available time slots.
 2. **Add/Edit Tasks**: Users should be able to create and modify pet care tasks (e.g., walks, feeding, medications, enrichment, grooming) with attributes like duration, priority level, and task type.
-3. **Generate Daily Schedule**: Users should be able to request a daily plan that intelligently schedules tasks based on constraints (available time, priority levels, owner preferences) and displays the plan with explanations for why tasks were scheduled at specific times.
+3. **Generate Daily Schedule**: Users should be able to request a daily plan that intelligently schedules tasks based on constraints (available time, priority levels, owner preferences) and displays the plan with explanations for why tasks were scheduled at specific times. 
 
 **a. Initial design**
 
