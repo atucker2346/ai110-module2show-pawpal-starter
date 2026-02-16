@@ -9,6 +9,9 @@
 
 **a. Initial design**
 
+- Briefly describe your initial UML design.
+- What classes did you include, and what responsibilities did you assign to each?
+
 The initial UML design includes four main classes:
 
 1. **Owner**: Represents the pet owner with their availability constraints and preferences. Responsibilities include:
@@ -37,6 +40,9 @@ The relationships are: Owner owns one or more Pets, Pet belongs to one Owner, an
 
 **b. Design changes**
 
+- Did your design change during implementation?
+- If yes, describe at least one change and why you made it.
+
 Yes, the design evolved significantly during implementation. One key change was the relationship between Scheduler and Pet:
 
 **Initial Design**: The Scheduler had a direct reference to a single Pet instance (`self.pet`), suggesting it would schedule tasks for one pet at a time.
@@ -51,6 +57,9 @@ Yes, the design evolved significantly during implementation. One key change was 
 
 **a. Constraints and priorities**
 
+- What constraints does your scheduler consider (for example: time, priority, preferences)?
+- How did you decide which constraints mattered most?
+
 The scheduler considers three main constraints:
 
 1. **Time Availability**: The owner's available time window (start_hour to end_hour) limits when tasks can be scheduled. Tasks that exceed the available window are not scheduled.
@@ -62,6 +71,9 @@ The scheduler considers three main constraints:
 **Decision rationale**: Priority was chosen as the primary constraint because pet care tasks often have medical or safety implications (e.g., medications, feeding). Time availability is a hard constraint that cannot be violated. Duration optimization helps fit more tasks into the day, improving overall efficiency.
 
 **b. Tradeoffs**
+
+- Describe one tradeoff your scheduler makes.
+- Why is that tradeoff reasonable for this scenario?
 
 The scheduler makes a tradeoff in conflict detection: it detects conflicts *after* scheduling rather than preventing them *during* scheduling. The conflict detection algorithm checks for:
 1. Multiple tasks scheduled at the exact same time
@@ -80,6 +92,9 @@ This tradeoff is reasonable for this scenario because:
 ## 3. AI Collaboration
 
 **a. How you used AI**
+
+- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
+- What kinds of prompts or questions were most helpful?
 
 AI tools (VS Code Copilot) were used extensively throughout this project:
 
@@ -100,6 +115,9 @@ AI tools (VS Code Copilot) were used extensively throughout this project:
 
 **b. Judgment and verification**
 
+- Describe one moment where you did not accept an AI suggestion as-is.
+- How did you evaluate or verify what the AI suggested?
+
 One example where I modified an AI suggestion was during conflict detection implementation. Copilot initially suggested a more complex algorithm that would prevent conflicts during scheduling by checking each task against all previously scheduled tasks before adding it.
 
 **What I changed**: Instead of preventing conflicts during scheduling, I implemented post-scheduling conflict detection that reports warnings. This approach:
@@ -116,6 +134,9 @@ One example where I modified an AI suggestion was during conflict detection impl
 ## 4. Testing and Verification
 
 **a. What you tested**
+
+- What behaviors did you test?
+- Why were these tests important?
 
 The test suite covers 15 distinct behaviors across multiple categories:
 
@@ -134,6 +155,9 @@ The test suite covers 15 distinct behaviors across multiple categories:
 **Why important**: These tests provide confidence that the system works correctly in both normal use cases and edge cases. They catch regressions when code changes and document expected behavior for future developers.
 
 **b. Confidence**
+
+- How confident are you that your scheduler works correctly?
+- What edge cases would you test next if you had more time?
 
 **Confidence Level: ⭐⭐⭐⭐⭐ (5/5 stars)**
 
@@ -158,6 +182,8 @@ I'm highly confident the scheduler works correctly because:
 
 **a. What went well**
 
+- What part of this project are you most satisfied with?
+
 I'm most satisfied with the **conflict detection and warning system**. It strikes a good balance between:
 - **Simplicity**: The algorithm is straightforward to understand and maintain
 - **Usefulness**: It provides actionable warnings that help users identify scheduling issues
@@ -166,6 +192,8 @@ I'm most satisfied with the **conflict detection and warning system**. It strike
 The implementation elegantly handles both exact-time conflicts and overlapping durations, and the UI integration makes these warnings visible and helpful without being alarming. This feature demonstrates thoughtful system design that prioritizes user experience while maintaining code clarity.
 
 **b. What you would improve**
+
+- If you had another iteration, what would you improve or redesign?
 
 If I had another iteration, I would:
 
@@ -182,6 +210,8 @@ If I had another iteration, I would:
 6. **Performance optimization**: For owners with many pets and tasks, optimize the scheduling algorithm to handle larger datasets more efficiently.
 
 **c. Key takeaway**
+
+- What is one important thing you learned about designing systems or working with AI on this project?
 
 **The most important lesson**: Being the "lead architect" when working with AI means constantly evaluating suggestions against your system's philosophy and user needs, not just technical correctness.
 
