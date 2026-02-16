@@ -51,3 +51,57 @@ pip install -r requirements.txt
 5. Add tests to verify key behaviors.
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
+
+## Testing PawPal+
+
+The PawPal+ system includes a comprehensive test suite to verify core functionality and edge cases.
+
+### Running Tests
+
+To run the test suite:
+
+```bash
+python -m pytest tests/test_pawpal.py -v
+```
+
+### Test Coverage
+
+The test suite covers:
+
+**Core Functionality:**
+- Task completion and status changes
+- Task addition to pets
+- Owner task aggregation across multiple pets
+- Schedule generation with priority-based ordering
+
+**Sorting and Filtering:**
+- Tasks sorted correctly by scheduled time (chronological order)
+- Filtering by completion status (complete/incomplete)
+- Filtering by pet name (case-insensitive)
+
+**Recurring Tasks:**
+- Daily tasks automatically create new instances when marked complete
+- Non-recurring tasks do not create new instances
+- Recurring task properties are preserved in new instances
+
+**Conflict Detection:**
+- Detects tasks scheduled at the exact same time
+- Identifies overlapping task durations
+- Returns appropriate warnings without crashing
+- Correctly identifies when no conflicts exist
+
+**Edge Cases:**
+- Pet with no tasks generates empty schedule
+- All completed tasks are filtered out from schedule
+- Tasks exceeding available time window are handled correctly
+- Empty schedules return appropriate results
+
+### Confidence Level
+
+**⭐⭐⭐⭐⭐ (5/5 stars)**
+
+The test suite provides high confidence in system reliability:
+- All core behaviors are tested with both happy paths and edge cases
+- Sorting, filtering, and conflict detection algorithms are thoroughly verified
+- Recurring task logic is validated to ensure automatic task creation works correctly
+- Edge cases ensure the system handles boundary conditions gracefully
