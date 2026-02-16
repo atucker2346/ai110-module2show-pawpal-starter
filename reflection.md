@@ -51,8 +51,17 @@ The relationships are: Owner owns one or more Pets, Pet belongs to one Owner, an
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+The scheduler makes a tradeoff in conflict detection: it detects conflicts *after* scheduling rather than preventing them *during* scheduling. The conflict detection algorithm checks for:
+1. Multiple tasks scheduled at the exact same time
+2. Tasks with overlapping durations (e.g., Task A from 10:00-11:00 overlaps with Task B from 10:30-11:30)
+
+However, it does not prevent conflicts during the initial scheduling phase. This means the scheduler may schedule tasks that overlap, then report them as warnings rather than automatically rescheduling to avoid conflicts.
+
+This tradeoff is reasonable for this scenario because:
+- **Simplicity**: Preventing conflicts during scheduling would require more complex logic (checking all previously scheduled tasks before adding each new one), making the code harder to understand and maintain.
+- **User control**: By reporting conflicts as warnings, the system gives users visibility into potential issues while allowing them to manually adjust if needed.
+- **Performance**: Post-scheduling conflict detection is O(n²) in worst case, but for typical pet care schedules (5-20 tasks per day), this is acceptable. Preventing conflicts during scheduling would require similar complexity but with less flexibility.
+- **Priority preservation**: The current approach prioritizes getting high-priority tasks scheduled first, even if it means some conflicts. Users can then decide whether to adjust lower-priority tasks or their availability window.
 
 ---
 

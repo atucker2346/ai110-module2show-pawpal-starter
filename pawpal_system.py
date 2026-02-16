@@ -10,6 +10,7 @@ This module contains the core classes for the pet care planning system:
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple, Optional
+from datetime import datetime, timedelta
 
 
 @dataclass
@@ -32,13 +33,32 @@ class Task:
         priority_map = {"low": 1, "medium": 2, "high": 3}
         return priority_map.get(self.priority.lower(), 1)
     
-    def mark_complete(self) -> None:
-        """Marks the task as completed."""
+    def mark_complete(self) -> Optional['Task']:
+        """Marks the task as completed. Returns a new task instance if frequency is set."""
         self.completed = True
+        
+        # Handle recurring tasks
+        if self.frequency:
+            new_task = Task(
+                title=self.title,
+                duration_minutes=self.duration_minutes,
+                priority=self.priority,
+                task_type=self.task_type,
+                frequency=self.frequency,
+                completed=False
+            )
+            return new_task
+        return None
     
     def mark_incomplete(self) -> None:
         """Marks the task as not completed."""
         self.completed = False
+    
+    def get_scheduled_time_str(self) -> str:
+        """Returns scheduled time as HH:MM string, or empty string if not scheduled."""
+        if self.scheduled_time is not None:
+            return f"{self.scheduled_time:02d}:00"
+        return ""
 
 
 @dataclass
@@ -73,6 +93,17 @@ class Pet:
     def get_tasks(self) -> List[Task]:
         """Returns list of all tasks for this pet."""
         return self.tasks
+    
+    def mark_task_complete(self, task_title: str) -> bool:
+        """Marks a task as complete and handles recurring tasks. Returns True if task was found."""
+        for task in self.tasks:
+            if task.title == task_title:
+                new_task = task.mark_complete()
+                if new_task:
+                    # Add new recurring task instance
+                    self.add_task(new_task)
+                return True
+        return False
 
 
 @dataclass
@@ -115,6 +146,7 @@ class Scheduler:
         """Initialize scheduler with owner."""
         self.owner = owner
         self.daily_plan: List[Dict] = []
+        self.conflict_warnings: List[str] = []
     
     def add_task(self, task: Task, pet: Pet) -> None:
         """Adds a task to a pet's task list."""
@@ -123,6 +155,80 @@ class Scheduler:
     def remove_task(self, task_title: str, pet: Pet) -> bool:
         """Removes a task by title from a pet. Returns True if task was found."""
         return pet.remove_task(task_title)
+    
+    def sort_by_time(self, tasks: List[Task]) -> List[Task]:
+        """Sorts tasks by their scheduled time (HH:MM format). Unscheduled tasks go to the end."""
+        def time_key(task: Task) -> Tuple[int, int]:
+            """Returns (hour, minute) tuple for sorting, or (999, 999) for unscheduled tasks."""
+            if task.scheduled_time is not None:
+                return (task.scheduled_time, 0)
+            return (999, 999)  # Put unscheduled tasks at the end
+        
+        return sorted(tasks, key=time_key)
+    
+    def filter_tasks(self, tasks: List[Task], completed: Optional[bool] = None, pet_name: Optional[str] = None) -> List[Task]:
+        """Filters tasks by completion status and/or pet name."""
+        filtered = tasks
+        
+        # Filter by completion status
+        if completed is not None:
+            filtered = [task for task in filtered if task.completed == completed]
+        
+        # Filter by pet name
+        if pet_name is not None:
+            pet_tasks = []
+            for pet in self.owner.get_pets():
+                if pet.name.lower() == pet_name.lower():
+                    pet_tasks.extend([task for task in filtered if task in pet.get_tasks()])
+            filtered = pet_tasks
+        
+        return filtered
+    
+    def detect_conflicts(self, schedule: List[Dict]) -> List[str]:
+        """Detects scheduling conflicts where tasks overlap in time. Returns list of warning messages."""
+        warnings = []
+        
+        # Group tasks by scheduled time
+        time_slots = {}
+        for item in schedule:
+            time_key = item["scheduled_time"]
+            if time_key not in time_slots:
+                time_slots[time_key] = []
+            time_slots[time_key].append(item)
+        
+        # Check for conflicts (same time or overlapping durations)
+        for time_slot, items in time_slots.items():
+            if len(items) > 1:
+                # Multiple tasks at the same time
+                pet_names = [item["pet"] for item in items]
+                task_names = [item["task"] for item in items]
+                warnings.append(
+                    f"⚠️ Conflict at {time_slot}: Multiple tasks scheduled - "
+                    f"{', '.join(task_names)} for pets {', '.join(set(pet_names))}"
+                )
+            
+            # Check for overlapping durations
+            for i, item1 in enumerate(items):
+                for item2 in items[i+1:]:
+                    # Calculate end times
+                    start_time1 = self._parse_time(item1["scheduled_time"])
+                    end_time1 = start_time1 + timedelta(minutes=item1["duration"])
+                    start_time2 = self._parse_time(item2["scheduled_time"])
+                    end_time2 = start_time2 + timedelta(minutes=item2["duration"])
+                    
+                    # Check if times overlap
+                    if not (end_time1 <= start_time2 or end_time2 <= start_time1):
+                        warnings.append(
+                            f"⚠️ Overlap detected: '{item1['task']}' ({item1['pet']}) and "
+                            f"'{item2['task']}' ({item2['pet']}) overlap in time"
+                        )
+        
+        return warnings
+    
+    def _parse_time(self, time_str: str) -> datetime:
+        """Helper method to parse HH:MM time string into datetime object."""
+        hour, minute = map(int, time_str.split(":"))
+        return datetime(2000, 1, 1, hour, minute)
     
     def generate_schedule(self) -> List[Dict]:
         """Creates daily schedule based on constraints and priorities."""
@@ -171,6 +277,14 @@ class Scheduler:
                 current_time_minutes += task.duration_minutes
         
         self.daily_plan = scheduled
+        
+        # Detect and report conflicts
+        conflicts = self.detect_conflicts(scheduled)
+        if conflicts:
+            self.conflict_warnings = conflicts
+        else:
+            self.conflict_warnings = []
+        
         return scheduled
     
     def explain_plan(self) -> str:
