@@ -2,10 +2,38 @@
 
 ## 1. System Design
 
+**Core Actions:**
+1. **Add/Manage Pet Information**: Users should be able to enter basic information about their pet (name, species) and link it to an owner profile with preferences and available time slots.
+2. **Add/Edit Tasks**: Users should be able to create and modify pet care tasks (e.g., walks, feeding, medications, enrichment, grooming) with attributes like duration, priority level, and task type.
+3. **Generate Daily Schedule**: Users should be able to request a daily plan that intelligently schedules tasks based on constraints (available time, priority levels, owner preferences) and displays the plan with explanations for why tasks were scheduled at specific times.
+
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+The initial UML design includes four main classes:
+
+1. **Owner**: Represents the pet owner with their availability constraints and preferences. Responsibilities include:
+   - Storing owner name and available time window (start/end hours)
+   - Managing owner preferences (e.g., preferred walk times)
+   - Providing access to availability information
+
+2. **Pet**: Represents a pet with basic information. Responsibilities include:
+   - Storing pet name and species
+   - Maintaining a reference to the owner
+   - Providing pet information when needed
+
+3. **Task**: Represents individual pet care tasks using a dataclass. Responsibilities include:
+   - Storing task details (title, duration, priority, type)
+   - Converting priority strings to numeric values for sorting
+   - Providing task duration information
+
+4. **Scheduler**: The core scheduling engine that generates daily plans. Responsibilities include:
+   - Managing a collection of tasks
+   - Maintaining references to owner and pet
+   - Generating daily schedules based on constraints (time availability, priority)
+   - Explaining the reasoning behind the generated schedule
+   - Adding and removing tasks
+
+The relationships are: Owner owns one or more Pets, Pet belongs to one Owner, and Scheduler uses Owner and Pet information to manage and schedule Tasks.
 
 **b. Design changes**
 
